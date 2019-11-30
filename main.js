@@ -8,15 +8,18 @@ class Widget {
         this.items = [];
     }
 
-    getImages() {
+    getImages(callback) {
         const xhr = new XMLHttpRequest();
-        xhr.open('GET', this.url, false);
+        xhr.open('GET', this.url);
         xhr.send();
-        if (xhr.status != 200) {
-            alert(xhr.status + ': ' + xhr.statusText);
-        } else {
-            return JSON.parse(xhr.responseText);
-        }
+        xhr.onreadystatechange = function() { // (3)
+            if (xhr.readyState != 4) return;
+            if (xhr.status != 200) {
+                alert(xhr.status + ': ' + xhr.statusText);
+            } else {
+                callback(xhr.responseText);
+            }
+        };
     };
 
     toggleDescription(index) {
@@ -50,8 +53,8 @@ class Widget {
         this.setIndex(this.items.length - 1)
     };
 
-    create() {
-        this.items = this.getImages();
+    createDom(response) {
+        this.items = JSON.parse(response);
         root.insertAdjacentHTML('afterbegin', 
             `<div style='display: flex; justify-content: center'>
                 <div class='infoBox'>
@@ -82,6 +85,11 @@ class Widget {
                 </div>`);
         });
         this.toFirst();
+    }
+
+    create() {
+        const createThisDom = this.createDom.bind(this);
+        this.getImages(createThisDom);   
     };
 };
    
